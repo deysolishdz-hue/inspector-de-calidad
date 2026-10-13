@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#8b4e35">
+  <title>Inspector de calidad</title>
+  <style>
+    :root { --ink:#2f211d; --brown:#6e3d2c; --terracotta:#b65b36; --orange:#e99345; --green:#416b5b; --cream:#f7f0e7; --paper:#fffdfa; --line:#dfbda4; }
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100vh; background:var(--cream); color:var(--ink); font-family:Georgia, "Times New Roman", serif; }
+    .shell { width:min(680px, 100%); margin:auto; padding:22px 16px 38px; }
+    .eyebrow { color:var(--terracotta); font-size:.84rem; font-weight:700; letter-spacing:.03em; text-transform:uppercase; }
+    h1 { font-size:clamp(2rem, 9vw, 3.5rem); line-height:1; margin:10px 0 12px; }
+    h2 { font-size:clamp(1.55rem, 7vw, 2.15rem); line-height:1.05; margin:4px 0 12px; }
+    p { font-family:Arial, Helvetica, sans-serif; font-size:1rem; line-height:1.5; margin:0 0 14px; }
+    .card { background:var(--paper); border:1.5px solid var(--line); border-radius:22px; padding:23px; box-shadow:0 8px 22px rgba(77,44,30,.07); }
+    .hidden { display:none !important; }
+    label { display:block; color:var(--brown); font-family:Arial, Helvetica, sans-serif; font-size:.92rem; font-weight:700; margin:18px 0 7px; }
+    input { width:100%; padding:14px 15px; border:1.5px solid var(--line); border-radius:12px; font:1rem Arial, sans-serif; color:var(--ink); background:#fff; }
+    button { width:100%; border:0; border-radius:12px; margin-top:18px; padding:15px 18px; background:var(--terracotta); color:#fff; font:700 1rem Arial, sans-serif; cursor:pointer; }
+    button:hover { background:var(--brown); }
+    button:focus-visible, input:focus-visible { outline:3px solid var(--orange); outline-offset:2px; }
+    .progress-wrap { display:flex; align-items:center; justify-content:space-between; gap:12px; font:700 .9rem Arial, sans-serif; color:var(--brown); margin-bottom:12px; }
+    .progress { height:8px; border-radius:20px; background:#ead9ce; overflow:hidden; margin-bottom:22px; }
+    .progress > div { height:100%; width:0; background:var(--green); transition:width .25s ease; }
+    .case { color:var(--terracotta); font:700 .84rem Arial, sans-serif; letter-spacing:.04em; text-transform:uppercase; }
+    .options { display:grid; gap:10px; margin-top:17px; }
+    .option { width:100%; margin:0; padding:14px; background:#fff; color:var(--ink); text-align:left; border:1.5px solid var(--line); font-weight:400; line-height:1.35; }
+    .option:hover { background:#fff7ef; color:var(--ink); }
+    .feedback { border-left:5px solid var(--green); border-radius:8px; margin-top:17px; padding:14px 15px; background:#eef5ef; font-family:Arial, Helvetica, sans-serif; line-height:1.45; }
+    .feedback.incorrect { border-color:var(--terracotta); background:#fff2ec; }
+    .score { color:var(--terracotta); font-size:clamp(3.4rem, 17vw, 5.8rem); font-weight:700; line-height:1; margin:8px 0; }
+    .result-list { padding-left:20px; font-family:Arial, Helvetica, sans-serif; line-height:1.5; }
+    .note { margin-top:18px; color:#67564d; font-size:.88rem; }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section id="welcome" class="card">
+      <div class="eyebrow">Aspectos legales para diseño gráfico · 3.2 Control de calidad</div>
+      <h1>Inspector de calidad</h1>
+      <p>Resuelve cinco casos prácticos sobre etiquetas. Cada decisión vale 20 puntos. Lee la retroalimentación antes de pasar al siguiente caso.</p>
+      <label for="studentName">Tu nombre</label>
+      <input id="studentName" autocomplete="name" maxlength="70" placeholder="Escribe tu nombre">
+      <button id="start" type="button">Comenzar actividad</button>
+    </section>
+
+    <section id="quiz" class="hidden">
+      <div class="progress-wrap"><span id="progressText">Caso 1 de 5</span><span id="scoreLive">0 puntos</span></div>
+      <div class="progress"><div id="progressBar"></div></div>
+      <article class="card">
+        <div id="caseLabel" class="case"></div>
+        <h2 id="question"></h2>
+        <div id="options" class="options"></div>
+        <div id="feedback" class="feedback hidden" role="status"></div>
+        <button id="next" class="hidden" type="button">Siguiente caso</button>
+      </article>
+    </section>
+
+    <section id="result" class="card hidden">
+      <div class="eyebrow">Resultado individual</div>
+      <h1 id="resultName">Resultado</h1>
+      <div id="scoreFinal" class="score">0/100</div>
+      <p id="level"></p>
+      <h2>Qué revisar</h2>
+      <ul id="reviewList" class="result-list"></ul>
+      <button id="restart" type="button">Intentar de nuevo</button>
+      <p class="note">Muestra esta pantalla a tu docente. Esta versión funciona en el navegador y no guarda nombres ni calificaciones.</p>
+    </section>
+  </main>
+
+  <script>
+    const cases = [
+      {
+        filter: "Calidad de la información",
+        question: "La etiqueta de Café Aurora dice “250 g”, pero la ficha aprobada por el cliente dice “225 g”. ¿Qué debe hacer la diseñadora?",
+        options: [
+          "Elegir 250 g porque aparece en el frente y se ve mejor.",
+          "Detener la aprobación y pedir al responsable que confirme el contenido correcto antes de producir.",
+          "Cambiar ambos documentos a 250 g sin avisar.",
+          "Eliminar el peso para evitar la contradicción."
+        ],
+        correct: 1,
+        feedback: "La información debe ser exacta y consistente. La diseñadora no debe decidir el dato ni ocultarlo: debe solicitar una confirmación del responsable."
+      },
+      {
+        filter: "Calidad legal",
+        question: "El cliente pide añadir “100% natural”, pero no entrega evidencia ni una especificación que respalde ese mensaje. ¿Cuál es la decisión profesional?",
+        options: [
+          "Agregarlo porque es una frase común en productos de café.",
+          "Cambiarlo por “el mejor café” para que sea menos riesgoso.",
+          "Pedir sustento del mensaje y detener esa afirmación hasta confirmarla.",
+          "Usarlo solamente en publicaciones de redes sociales."
+        ],
+        correct: 2,
+        feedback: "Las afirmaciones comerciales deben poder sostenerse. Si el cliente no confirma la información, se consulta antes de aprobar el arte final."
+      },
+      {
+        filter: "Calidad visual",
+        question: "La instrucción de conservación quedó en tipografía muy pequeña y con poco contraste sobre una fotografía oscura. ¿Qué corrección corresponde?",
+        options: [
+          "Mantenerla así para conservar el diseño original.",
+          "Aumentar legibilidad mediante tamaño, contraste y espacio suficiente en el envase real.",
+          "Moverla al reverso sin revisar si todavía se lee.",
+          "Quitarla porque ocupa demasiado espacio."
+        ],
+        correct: 1,
+        feedback: "La revisión visual verifica que las personas puedan encontrar y comprender la información necesaria. La estética no justifica texto ilegible."
+      },
+      {
+        filter: "Calidad técnica",
+        question: "La etiqueta se diseñó sin conocer la medida definitiva del envase ni la zona de seguridad. ¿Qué falta antes de preparar el archivo para impresión?",
+        options: [
+          "Exportar el PDF y pedir a la imprenta que ajuste el tamaño.",
+          "Confirmar medidas del envase, zona segura y especificaciones de producción con quien imprimirá.",
+          "Usar una medida estándar para cualquier frasco.",
+          "Enviar el archivo sin sangrado para que sea más ligero."
+        ],
+        correct: 1,
+        feedback: "La calidad técnica comprueba que el archivo puede producirse. Medidas, zona de seguridad y especificaciones deben confirmarse antes de exportar el arte final."
+      },
+      {
+        filter: "Calidad de producción y uso",
+        question: "En una prueba física, la etiqueta se arruga con la humedad y tapa parte de la instrucción al aplicarse en el frasco. ¿Qué debe hacer la diseñadora?",
+        options: [
+          "Aprobarla porque en pantalla se ve correcta.",
+          "Reducir la instrucción para que no quede tapada.",
+          "Revisar material, acabado y colocación con una nueva prueba antes de autorizar la producción.",
+          "Pedir al usuario que no moje el envase."
+        ],
+        correct: 2,
+        feedback: "Una etiqueta debe funcionar en el objeto real. La prueba física permite detectar problemas de material, aplicación y lectura antes de producir muchas piezas."
+      }
+    ];
+
+    let index = 0;
+    let score = 0;
+    const answered = [];
+    const welcome = document.querySelector("#welcome");
+    const quiz = document.querySelector("#quiz");
+    const result = document.querySelector("#result");
+    const nameInput = document.querySelector("#studentName");
+    const start = document.querySelector("#start");
+    const options = document.querySelector("#options");
+    const feedback = document.querySelector("#feedback");
+    const next = document.querySelector("#next");
+
+    function renderCase() {
+      const current = cases[index];
+      document.querySelector("#progressText").textContent = `Caso ${index + 1} de ${cases.length}`;
+      document.querySelector("#scoreLive").textContent = `${score} puntos`;
+      document.querySelector("#progressBar").style.width = `${(index / cases.length) * 100}%`;
+      document.querySelector("#caseLabel").textContent = current.filter;
+      document.querySelector("#question").textContent = current.question;
+      options.replaceChildren();
+      feedback.className = "feedback hidden";
+      next.classList.add("hidden");
+      current.options.forEach((option, optionIndex) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "option";
+        button.textContent = `${String.fromCharCode(65 + optionIndex)}. ${option}`;
+        button.addEventListener("click", () => answer(optionIndex));
+        options.appendChild(button);
+      });
+    }
+
+    function answer(choice) {
+      const current = cases[index];
+      const isCorrect = choice === current.correct;
+      if (isCorrect) score += 20;
+      answered.push({ ...current, isCorrect });
+      [...options.children].forEach((button, optionIndex) => {
+        button.disabled = true;
+        if (optionIndex === current.correct) button.style.borderColor = "#416b5b";
+        if (optionIndex === choice && !isCorrect) button.style.borderColor = "#b65b36";
+      });
+      feedback.textContent = `${isCorrect ? "Correcto. " : "Revisa esta idea. "}${current.feedback}`;
+      feedback.className = `feedback ${isCorrect ? "" : "incorrect"}`;
+      next.textContent = index === cases.length - 1 ? "Ver mi resultado" : "Siguiente caso";
+      next.classList.remove("hidden");
+      document.querySelector("#scoreLive").textContent = `${score} puntos`;
+    }
+
+    function showResult() {
+      quiz.classList.add("hidden");
+      result.classList.remove("hidden");
+      document.querySelector("#resultName").textContent = nameInput.value.trim() || "Resultado";
+      document.querySelector("#scoreFinal").textContent = `${score}/100`;
+      const level = score === 100 ? "Dominio sólido: distingues los cinco filtros de control de calidad." : score >= 60 ? "Buen avance: revisa los casos indicados y vuelve a intentarlo si puedes." : "Necesitas reforzar los filtros de revisión. Lee las respuestas y retoma la actividad.";
+      document.querySelector("#level").textContent = level;
+      const review = document.querySelector("#reviewList");
+      review.replaceChildren();
+      answered.filter(item => !item.isCorrect).forEach(item => {
+        const line = document.createElement("li");
+        line.textContent = `${item.filter}: ${item.feedback}`;
+        review.appendChild(line);
+      });
+      if (!review.children.length) {
+        const line = document.createElement("li");
+        line.textContent = "Respondiste correctamente los cinco casos.";
+        review.appendChild(line);
+      }
+    }
+
+    start.addEventListener("click", () => {
+      welcome.classList.add("hidden");
+      quiz.classList.remove("hidden");
+      renderCase();
+    });
+    nameInput.addEventListener("keydown", event => { if (event.key === "Enter") start.click(); });
+    next.addEventListener("click", () => { index += 1; index < cases.length ? renderCase() : showResult(); });
+    document.querySelector("#restart").addEventListener("click", () => { index = 0; score = 0; answered.length = 0; result.classList.add("hidden"); welcome.classList.remove("hidden"); nameInput.focus(); });
+  </script>
+</body>
+</html>
